@@ -83,6 +83,8 @@ module CompanyView =
         ]
        
 module CompanyDetailsView =
+    let updatePersons (person:Person) (persons:Person array)  =
+        updateItems persons person |> Seq.toArray
 
     let view ( company:Lens<Company>)  =
 
@@ -167,19 +169,19 @@ module CompaniesView =
                     But it requires some more infrustructure that 
                     I haven't time to put in yet
                 *)
-let selectedCompanyLens = 
-    let setter (c:Company) (s:State) = 
-        { s with 
-            companies = 
-            s.companies 
-            |> Seq.map ( fun c' -> if c'.id = s.selectedCompany then c else c') 
-            |> Seq.toArray
-        }
-    let getter (s:State) =
-        s.companies 
-        |> Seq.find ( fun c -> c.id = s.selectedCompany)
+                let selectedCompanyLens = 
+                    let setter (c:Company) (s:State) = 
+                        { s with 
+                            companies = 
+                            s.companies 
+                            |> Seq.map ( fun c' -> if c'.id = s.selectedCompany then c else c') 
+                            |> Seq.toArray
+                        }
+                    let getter (s:State) =
+                        s.companies 
+                        |> Seq.find ( fun c -> c.id = s.selectedCompany)
         
-    state.Focus setter getter
+                    state.Focus setter getter
 
 CompanyDetailsView.view selectedCompanyLens 
             ]
