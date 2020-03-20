@@ -22,7 +22,7 @@ type MainWindow() as this =
 
         Result.result {
             // Initialize the main view state
-            let state = Data.init |> Seq.toArray
+            let state = CompaniesView.init Data.init
 
             // Wrap the mainview view function and inject the bin file reviewer action
             let view state dispatch = CompaniesView.view (Lens.init state dispatch) 

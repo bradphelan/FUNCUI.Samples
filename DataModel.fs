@@ -20,29 +20,12 @@ module Data =
             }
         )
 
-    type Location = {
-        id: int
-        address: string
-        people: Person array
-    }
-    let locationFaker = 
-        Bogus
-            .Faker<Location>()
-            .CustomInstantiator( fun f -> 
-            {
-                address = f.Address.FullAddress()
-                people = personFaker.GenerateForever() 
-                    |> Seq.take(3) 
-                    |> Seq.toArray
-                id = f.IndexGlobal
-            }
-        )
 
     type Company = {
         id: int
         name: string
         business: string
-        locations: Location array
+        employees: Person array
     }
     let companyFaker = 
         Bogus
@@ -52,17 +35,21 @@ module Data =
                     id = f.IndexGlobal
                     name = f.Company.CompanyName()
                     business = f.Commerce.ProductName()
-                    locations = locationFaker.GenerateForever()
-                        |> Seq.take(200) 
+                    employees = personFaker.GenerateForever()
+                        |> Seq.take(3) 
                         |> Seq.toArray
                     })
 
 
     type Directory = Company array
 
-    let init = companyFaker.GenerateForever() |> Seq.take 5
+    let init = companyFaker.GenerateForever() |> Seq.take 5 |> Seq.toArray
 
     /// Check if the ids are the same
-    let inline replaceIfSame (newItem:'a) (oldItem:'a) = if oldItem.id = newItem.id then newItem else oldItem 
-    let inline updateItems (items:'a seq) (item:'a) = items |> Seq.map ( replaceIfSame item )
+    let inline getId (x:^a) = (^a : (member id : int)(x))
+
+    let inline replaceIfSame (newItem:'a) (oldItem:'a) = 
+        if getId(oldItem) = getId(newItem) then newItem else oldItem 
+    let inline updateItems (items:'a seq) (item:'a) = 
+        items |> Seq.map ( replaceIfSame item )
 
