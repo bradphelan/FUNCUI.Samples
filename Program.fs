@@ -14,7 +14,7 @@ type MainWindow() as this =
     inherit HostWindow()
     do
         base.Title <- "Brad Gone Surfing"
-        base.Width <- 400.0
+        base.Width <- 900.0
         base.Height <- 400.0
         
         //this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
@@ -22,7 +22,7 @@ type MainWindow() as this =
 
         Result.result {
             // Initialize the main view state
-            let mutable globalState = CompaniesView.init Data.init
+            let initialState = CompaniesView.init Data.init
 
             // Wrap the mainview view function and inject the bin file reviewer action
             let view state dispatch = 
@@ -37,7 +37,7 @@ type MainWindow() as this =
                     update state, cmd
 
             // Start the program
-            Elmish.Program.mkProgram (fun () -> globalState,Cmd.none) update view
+            Elmish.Program.mkProgram (fun () -> initialState,Cmd.none) update view
                 |> Program.withHost this
                // |> Program.withConsoleTrace
                 |> Program.run

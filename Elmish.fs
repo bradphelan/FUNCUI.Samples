@@ -89,21 +89,10 @@ module Elmish =
             else
                 ()
 
-
-        member x.SetDeffered(newValue: 'State) =
-            if newValue <> x.value() then
-                newValue
-                |> Message.ofValueDeferred
-                |> x.dispatch
-            else
-                ()
-
-        member x.Focus (setter: 'Val -> 'State -> 'State) (getter:'State ->'Val)  =
+        /// Generate new lens for child data of the parent lens
+        member x.Focus (setter: 'Val -> 'State -> 'State) (getter:'State ->'Val) : Lens<'Val>  =
             let updateTransformer (itemTransformer:'Val->'Val) (state:'State) =
-                let v = getter state
-                let v' = itemTransformer v
-                let s = setter v' state
-                s
+                setter (getter state |> itemTransformer) state
 
             let value() = getter x.Get
 
@@ -116,10 +105,10 @@ module Elmish =
             { value = value
               dispatch = dispatch }
 
-        /// Generate a lens given an item, it's parent state and a way to update that item
-        let returnM (parentLens: Lens<'a>) stateUpdater item = parentLens.Focus stateUpdater item
-
         /// Convert a lens of an array to an array of lenses
+        /// ie:
+        ///  
+        /// <![CDATA[ Lens<int array> -> Lens<int> array ]]>
         let focusArray (compare:'State->'State->bool) (lens:Lens<'State array>) =
             lens.Get
                 |> Seq.map ( fun (item:'State) -> 
