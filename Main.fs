@@ -17,73 +17,102 @@ open BGS.Data
 open BGS
 
 
+
 module PersonView  =
     let updatePersonFirstName (person:Lens<Person>) name =
-        {person.value with firstName = name} |> person.Set
+        {person.Get with firstName = name} |> person.Set
 
     let updatePersonSecondName (person:Lens<Person>) name =
-        {person.value with firstName = name} |> person.Set
+        {person.Get with lastName = name} |> person.Set
 
     let updateCompanyBusiness (company:Lens<Company>) business =
-        {company.value with business = business} |> company.Set
+        {company.Get with business = business} |> company.Set
 
-    let view (person:Lens<Person>) =
-        StackPanel.create [
-            StackPanel.orientation Orientation.Vertical
-            StackPanel.children [
-                TextBox.create [
-                    TextBox.width 200.0
-                    TextBox.text person.value.firstName
-                    TextBox.onTextChanged <| updatePersonFirstName person
-                ]
-                TextBox.create [
-                    TextBox.width 200.0
-                    TextBox.text person.value.lastName
-                    TextBox.onTextChanged <| updatePersonSecondName person
-                ]
-            ]
-        ]
-
-
-module EmployeesView =
-    let updatePersons (person:Person) (persons:Person array)  =
-        updateItems persons person |> Seq.toArray
-
-    let view (persons:Lens<Person array>) =
-        ListBox.create [
-            let personLenses  = 
-                persons.value
-                    |> Seq.map ( persons.Focus updatePersons )
-                    |> Seq.toArray
-
-            ListBox.dataItems personLenses
-            ListBox.itemTemplate (DataTemplateView<Lens<Person>>.create(PersonView.view))
-        ]
-
-module CompanyView =
-    let view (selectedCompanyLens:Lens<int>)  (company:Lens<Company>) =
-
-        let updateCompanyName (company:Lens<Company>) name =
-            {company.value with name = name} |> company.Set
-
-        let updateCompanyBusiness (company:Lens<Company>) business =
-            {company.value with business = business} |> company.Set
-
+    let view (isEditable:bool) (person:Lens<Person>) =
         StackPanel.create [
             StackPanel.orientation Orientation.Horizontal
             StackPanel.children [
                 TextBox.create [
                     TextBox.width 200.0
-                    TextBox.text company.value.name
-                    TextBox.onTextChanged <| updateCompanyName company
+                    TextBox.isEnabled isEditable
+                    TextBox.text person.Get.firstName
+                    if isEditable then
+                        yield! TextBox.onTextInput ( fun txt ->  updatePersonFirstName person txt)
                 ]
                 TextBox.create [
+                    TextBox.isEnabled isEditable
                     TextBox.width 200.0
-                    TextBox.text company.value.business
-                    TextBox.onTextChanged <| updateCompanyBusiness company
+                    TextBox.text person.Get.lastName
+                    if isEditable then
+                        yield! TextBox.onTextInput ( fun txt ->  updatePersonSecondName person txt)
                 ]
             ]
         ]
+
+
+module CompanyView =
+    let updateCompanyName (company:Lens<Company>) name =
+        if name <> company.Get.name then
+            {company.Get with name = name} |> company.Set
+
+    let updateCompanyBusiness (company:Lens<Company>) business =
+        if business <> company.Get.business then
+            {company.Get with business = business} |> company.Set
+
+    let view   (editable:bool) (company:Lens<Company>) =
+        DockPanel.create [
+            DockPanel.children [
+                StackPanel.create [
+                    StackPanel.orientation Orientation.Horizontal
+                    StackPanel.children [
+                        TextBox.create [
+                            TextBox.isEnabled editable
+                            TextBox.width 200.0
+                            TextBox.text company.Get.name
+                            yield! TextBox.onTextInput ( fun txt ->  updateCompanyName company txt )
+                        ]
+                        TextBox.create [
+                            TextBox.isEnabled editable
+                            TextBox.width 200.0
+                            TextBox.text company.Get.business
+                            yield! TextBox.onTextInput ( fun txt ->  updateCompanyBusiness company txt )
+                        ]
+                    ]
+                ]
+            ]
+        ]
+       
+module CompanyDetailsView =
+    let updatePersons (person:Person) (persons:Person array)  =
+        updateItems persons person |> Seq.toArray
+
+    let view ( company:Lens<Company>)  =
+
+        let persons = company.Focus (fun persons state -> { state with employees = persons }) (fun state -> state.employees) 
+        let personLenses = Lens.focusArray (fun (a:Person) (b:Person) -> a.id = b.id) persons
+
+
+        StackPanel.create [
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.children [
+                TextBlock.create [ 
+                    TextBlock.text "The Company ( you can edit me )" 
+                    TextBlock.fontSize 20.0
+                    TextBlock.margin 10.0
+                ]
+                CompanyView.view true company 
+                TextBlock.create [ 
+                    TextBlock.text "The employees ( you can edit them )" 
+                    TextBlock.fontSize 20.0
+                    TextBlock.margin 10.0
+                ]
+                ListBox.create [
+                    ListBox.dataItems personLenses
+                    ListBox.itemTemplate (DataTemplateView<Lens<Person>>.create(PersonView.view true))
+                ]
+            ]
+        ]
+
 
 
 module CompaniesView =
@@ -103,33 +132,46 @@ module CompaniesView =
         let updateSelectedCompany selected (state:State) =
             {state with selectedCompany = selected}
 
+        let findSelectedIndex (state:State) =
+            state.companies |> Seq.findIndex ( fun c -> c.id = state.selectedCompany)
+
         DockPanel.create [
             DockPanel.children [
-                ListBox.create [
-                    let companyLenses = 
-                        state.value.companies
-                            |> Seq.map ( state.Focus updateCompany )
-                            |> Seq.toArray
-                    let selectedCompanyLens =
-                        state.Focus updateSelectedCompany 0
+                let companyLenses = 
+                    state.Focus (fun v s -> {s with companies = v}) (fun v -> v.companies)
+                    |> Lens.focusArray (fun a b -> a.id = b.id)
 
+                let selectedCompanyIdLens =
+                    state.Focus updateSelectedCompany (fun x -> x.selectedCompany ) 
+
+                TextBlock.create [
+                    TextBlock.dock Dock.Bottom
+                    TextBlock.text (sprintf "%d" state.Get.selectedCompany)
+                ]
+                ListBox.create [
                     ListBox.dock Dock.Left
                     ListBox.dataItems companyLenses
-                    ListBox.itemTemplate (DataTemplateView<Lens<Company>>.create(CompanyView.view selectedCompanyLens))
+                    ListBox.selectedIndex (findSelectedIndex(state.Get))
+                    ListBox.onSelectedIndexChanged ( fun id -> 
+                        if id > -1 then state.Get.companies.[id].id |> selectedCompanyIdLens.Set 
+                    )
+                    ListBox.itemTemplate (DataTemplateView.create(CompanyView.view false  ))
                 ]
-                let selectedCompanyLens =
-                    state.value.companies
-                    |> Seq.find( fun company -> company.id = state.value.selectedCompany)
-                    |> state.Focus updateCompany
 
+                let selectedCompanyLens = 
+                    let setter (c:Company) (s:State) = 
+                        { s with 
+                            companies = 
+                            s.companies 
+                            |> Seq.map ( fun c' -> if c'.id = s.selectedCompany then c else c') 
+                            |> Seq.toArray
+                        }
+                    let getter (s:State) =
+                        s.companies 
+                        |> Seq.find ( fun c -> c.id = s.selectedCompany)
+                    state.Focus setter getter
 
-
-                let employeesLens =
-                    selectedCompanyLens.Focus 
-                        (fun (employees:Person array) (company:Company) -> { company with employees = employees})
-                        selectedCompanyLens.value.employees
-
-                EmployeesView.view employeesLens
+                CompanyDetailsView.view selectedCompanyLens 
             ]
         ]
 

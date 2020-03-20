@@ -54,6 +54,15 @@ module TextBox =
     let inline onTextChangedParsed msg dispatch =
         TextBox.onTextChanged ( Text.tryParse >> Option.map msg >> Option.map dispatch >> ignore )
 
+    (* TextBox.onTextChanged is super flaky and causes the dispatch loop to hang because 
+       events are fired that are not from user input
+    *)
+    let onTextInput handler =
+        [
+            TextBox.onKeyDown ( fun args ->  handler (args.Source :?> TextBox).Text  )
+            TextBox.onKeyUp ( fun args ->  handler (args.Source :?> TextBox).Text  )
+        ]
+
 module Cmd =
     open Elmish
     let choose (f: 'a -> 'msg option) (cmd: Cmd<'a>) : Cmd<'msg> =
