@@ -88,8 +88,13 @@ module CompanyDetailsView =
 
     let view ( company:Lens<Company>)  =
 
-        let persons = company.Focus (fun persons state -> { state with employees = persons }) (fun state -> state.employees) 
-        let personLenses = Lens.focusArray (fun (a:Person) (b:Person) -> a.id = b.id) persons
+        let persons =
+            let setter persons state = { state with employees = persons }
+            let getter state = state.employees 
+            company.Focus setter getter
+
+        let personLenses = 
+            Lens.focusArray (fun (a:Person) (b:Person) -> a.id = b.id) persons
 
 
         StackPanel.create [
@@ -158,6 +163,15 @@ module CompaniesView =
                     ListBox.itemTemplate (DataTemplateView.create(CompanyView.view false  ))
                 ]
 
+                (* Ideally we would have a structure like so
+
+                    let selectedCompanyLens = state
+                        .Focus(<@ fun x -> x.companies @>)
+                        .FocusArrayItem(state.Get.selectedCompany)
+
+                    But it requires some more infrustructure that 
+                    I haven't time to put in yet
+                *)
                 let selectedCompanyLens = 
                     let setter (c:Company) (s:State) = 
                         { s with 
@@ -169,6 +183,7 @@ module CompaniesView =
                     let getter (s:State) =
                         s.companies 
                         |> Seq.find ( fun c -> c.id = s.selectedCompany)
+                        
                     state.Focus setter getter
 
                 CompanyDetailsView.view selectedCompanyLens 

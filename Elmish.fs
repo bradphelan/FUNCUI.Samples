@@ -98,12 +98,17 @@ module Elmish =
             else
                 ()
 
-        member x.Focus (setter: 'Val -> 'State -> 'State) (getter:'State ->'Val) =
-            let value = fun () -> getter(x.Get)
-            let updateTransformer itemTransformer  = itemTransformer (value()) |> setter
-            let dispatch' = Dispatch.wrap updateTransformer x.dispatch
-            { value = value; dispatch = dispatch' }
+        member x.Focus (setter: 'Val -> 'State -> 'State) (getter:'State ->'Val)  =
+            let updateTransformer (itemTransformer:'Val->'Val) (state:'State) =
+                let v = getter state
+                let v' = itemTransformer v
+                let s = setter v' state
+                s
 
+            let value() = getter x.Get
+
+            let dispatch' = Dispatch.wrap updateTransformer x.dispatch
+            { value = value ; dispatch = dispatch' }
 
 
     module Lens =
@@ -117,12 +122,12 @@ module Elmish =
         /// Convert a lens of an array to an array of lenses
         let focusArray (compare:'State->'State->bool) (lens:Lens<'State array>) =
             lens.Get
-                |> Seq.map ( fun item -> 
+                |> Seq.map ( fun (item:'State) -> 
                     let getter (s:'State array) = 
                         s |> Seq.find(compare item)
                     let setter v (s: 'State array) = 
                         s 
-                        |> Seq.map ( fun v' -> if compare item v' then v' else v ) 
+                        |> Seq.map ( fun v' -> if compare v v' then v else v' ) 
                         |> Seq.toArray
                     lens.Focus setter getter 
                 )
