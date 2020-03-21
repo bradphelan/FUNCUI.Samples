@@ -1,6 +1,7 @@
 ﻿namespace BGS
 
 open Elmish
+open XTargets.Elmish
 open Avalonia
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.FuncUI

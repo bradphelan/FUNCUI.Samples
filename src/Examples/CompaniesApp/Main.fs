@@ -2,7 +2,7 @@
 namespace BGS
 
 open Avalonia.FuncUI.DSL
-open BGS.Elmish
+open XTargets.Elmish
 
 open System
 open Avalonia.Controls
