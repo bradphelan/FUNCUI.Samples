@@ -1,6 +1,8 @@
-﻿# FUNCUI.Samples
+﻿# XTargets.Elmish.Lens
 
 A working demo for using a lens with the [FuncUI](https://github.com/AvaloniaCommunity/Avalonia.FuncUI) [Elmish API](https://github.com/elmish/elmish) for [Avalonia](https://github.com/AvaloniaUI/Avalonia) rather than the classic elmish messages and commands.
+
+*May* also work with other Elmish consumers such as Fable?? There is no dependency directly on FUNCUI.
 
 https://github.com/bradphelan/FUNCUI.Samples
 
