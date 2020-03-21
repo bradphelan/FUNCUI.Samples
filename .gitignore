@@ -1,3 +1,5 @@
+*.secure.txt
+
 *.swp
 *.*~
 project.lock.json
@@ -34,3 +36,4 @@ msbuild.wrn
 
 # F#
 .ionide
+.hscache
