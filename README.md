@@ -1,6 +1,6 @@
 ﻿# FUNCUI.Samples
 
-A working demo for using a lens with FuncUI rather than the classic elmish messages and commands.
+A working demo for using a lens with the [FuncUI](https://github.com/AvaloniaCommunity/Avalonia.FuncUI) [Elmish API](https://github.com/elmish/elmish) for [Avalonia](https://github.com/AvaloniaUI/Avalonia) rather than the classic elmish messages and commands.
 
 https://github.com/bradphelan/FUNCUI.Samples
 
