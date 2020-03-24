@@ -15,8 +15,6 @@ open FSharpx
 open Elmish
 open BGS.Data
 open BGS
-open Aether
-open Aether.Operators
 
 module PersonView  =
     let view (isEditable:bool) (person:Lens<Person>) =
@@ -41,6 +39,7 @@ module PersonView  =
         ]
 
 module CompanyView =
+    open Lens.Operators
 
     module Morphs = 
         // Usa FParsec to parse a string to an int. Overkill but
@@ -55,7 +54,7 @@ module CompanyView =
             )
 
     module TextBox =
-        let inline bind (lens:Lens<string>) =
+        let inline bindText (lens:Lens<string>) =
             [
                 TextBox.text lens.Get
                 yield! TextBox.onTextInput lens.Set
@@ -71,17 +70,17 @@ module CompanyView =
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            yield! company.Focus Company.name' |> TextBox.bind
+                            yield! company >-> Company.name' |> TextBox.bindText
                         ]
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            yield! company.Focus Company.business' |> TextBox.bind
+                            yield! company >-> Company.business' |> TextBox.bindText
                         ]
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            yield! (company.Focus Company.revenue').Morph Morphs.int |> TextBox.bind
+                            yield! company >-> Company.revenue' >?> Morphs.int |> TextBox.bindText
                         ]
                     ]
                 ]
