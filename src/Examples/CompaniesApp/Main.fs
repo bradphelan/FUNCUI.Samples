@@ -17,6 +17,8 @@ open BGS.Data
 open BGS
 
 module PersonView  =
+    open Lens.Operators
+
     let view (isEditable:bool) (person:Lens<Person>) =
         StackPanel.create [
             StackPanel.orientation Orientation.Horizontal
@@ -26,14 +28,14 @@ module PersonView  =
                     TextBox.isEnabled isEditable
                     TextBox.text person.Get.firstName
                     if isEditable then
-                        yield! TextBox.onTextInput (person.Focus Person.firstName').Set
+                        yield! TextBox.onTextInput (person >-> Person.firstName').Set
                 ]
                 TextBox.create [
                     TextBox.isEnabled isEditable
                     TextBox.width 200.0
                     TextBox.text person.Get.lastName
                     if isEditable then
-                        yield! TextBox.onTextInput (person.Focus Person.lastName').Set
+                        yield! TextBox.onTextInput (person >-> Person.lastName').Set
                 ]
             ]
         ]
@@ -88,13 +90,15 @@ module CompanyView =
         ]
        
 module CompanyDetailsView =
+    open Lens.Operators
+
     let updatePersons (person:Person) (persons:Person array)  =
         updateItems persons person |> Seq.toArray
 
     let view ( company:Lens<Company>)  =
 
         let personLenses = 
-            Lens.focusArray (fun (a:Person) (b:Person) -> a.id = b.id) (company.Focus Company.employees')
+            Lens.focusArray (fun (a:Person) (b:Person) -> a.id = b.id) (company >-> Company.employees')
 
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
@@ -120,6 +124,7 @@ module CompanyDetailsView =
 
 
 module CompaniesView =
+    open Lens.Operators
 
     type State = {
         companies: Company array
@@ -141,10 +146,10 @@ module CompaniesView =
         DockPanel.create [
             DockPanel.children [
                 let companyLenses = 
-                    state.Focus State.companies' |> Lens.focusArray (fun a b -> a.id = b.id)
+                    state >-> State.companies' |> Lens.focusArray (fun a b -> a.id = b.id)
 
                 let selectedCompanyIdLens =
-                    state.Focus State.selectedCompany'
+                    state >-> State.selectedCompany'
 
                 TextBlock.create [
                     TextBlock.dock Dock.Bottom
@@ -181,7 +186,7 @@ module CompaniesView =
                         s.companies 
                         |> Seq.find ( fun c -> c.id = s.selectedCompany)
         
-                    state.Focus(getter,setter)
+                    state >-> (getter,setter)
 
 CompanyDetailsView.view selectedCompanyLens 
             ]
