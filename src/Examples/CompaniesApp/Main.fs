@@ -98,7 +98,7 @@ module CompanyDetailsView =
     let view ( company:Lens<Company>)  =
 
         let personLenses = 
-            Lens.focusArray (fun (a:Person) (b:Person) -> a.id = b.id) (company >-> Company.employees')
+            Lens.Array.each (company >-> Company.employees')
 
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
@@ -121,8 +121,6 @@ module CompanyDetailsView =
             ]
         ]
 
-
-
 module CompaniesView =
     open Lens.Operators
 
@@ -137,19 +135,13 @@ module CompaniesView =
 
     let view (state: Lens<State>)   =
 
-        let updateSelectedCompany selected (state:State) =
-            {state with selectedCompany = selected}
-
         let findSelectedIndex (state:State) =
             state.companies |> Seq.findIndex ( fun c -> c.id = state.selectedCompany)
 
         DockPanel.create [
             DockPanel.children [
                 let companyLenses = 
-                    state >-> State.companies' |> Lens.focusArray (fun a b -> a.id = b.id)
-
-                let selectedCompanyIdLens =
-                    state >-> State.selectedCompany'
+                    state >-> State.companies' |> Lens.Array.each 
 
                 TextBlock.create [
                     TextBlock.dock Dock.Bottom
@@ -160,35 +152,17 @@ module CompaniesView =
                     ListBox.dataItems companyLenses
                     ListBox.selectedIndex (findSelectedIndex(state.Get))
                     ListBox.onSelectedIndexChanged ( fun id -> 
-                        if id > -1 then state.Get.companies.[id].id |> selectedCompanyIdLens.Set 
+                        if id > -1 then state.Get.companies.[id].id |> (state >-> State.selectedCompany').Set 
                     )
                     ListBox.itemTemplate (DataTemplateView.create(CompanyView.view false  ))
                 ]
 
-                (* Ideally we would have a structure like so
+                let selectedCompanyLensId = 
+                    state 
+                    >-> State.companies' 
+                    >-> (Lens.Array.find (fun c -> c.id = state.Get.selectedCompany))
 
-                    let selectedCompanyLens = state
-                        .Focus(<@ fun x -> x.companies @>)
-                        .FocusArrayItem(state.Get.selectedCompany)
-
-                    But it requires some more infrustructure that 
-                    I haven't time to put in yet
-                *)
-                let selectedCompanyLens = 
-                    let setter (c:Company) (s:State) = 
-                        { s with 
-                            companies = 
-                            s.companies 
-                            |> Seq.map ( fun c' -> if c'.id = s.selectedCompany then c else c') 
-                            |> Seq.toArray
-                        }
-                    let getter (s:State) =
-                        s.companies 
-                        |> Seq.find ( fun c -> c.id = s.selectedCompany)
-        
-                    state >-> (getter,setter)
-
-CompanyDetailsView.view selectedCompanyLens 
+                CompanyDetailsView.view selectedCompanyLensId
             ]
         ]
 
