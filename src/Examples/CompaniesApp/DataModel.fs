@@ -8,7 +8,11 @@ module Data =
         id: int 
         firstName: string
         lastName: string
-    }
+    } with
+        static member id' = (fun o->o.id),(fun v o -> {o with id = v})
+        static member firstName' = (fun o->o.firstName),(fun v o -> {o with firstName = v})
+        static member lastName' = (fun o->o.lastName),(fun v o -> {o with lastName = v})
+
     let personFaker = 
         Bogus
             .Faker<Person>()
@@ -26,7 +30,15 @@ module Data =
         name: string
         business: string
         employees: Person array
-    }
+        revenue: int
+    } with
+        static member id' = (fun o->o.id),(fun v (o:Company) -> {o with id = v})
+        static member name' = (fun o->o.name),(fun v o -> {o with name = v})
+        static member business' = (fun o->o.business),(fun v o -> {o with business = v})
+        static member employees' = (fun o->o.employees),(fun v o -> {o with employees = v})
+        static member revenue' = (fun o->o.revenue),(fun v o -> {o with revenue = v})
+
+
     let companyFaker = 
         Bogus
             .Faker<Company>()
@@ -38,6 +50,7 @@ module Data =
                     employees = personFaker.GenerateForever()
                         |> Seq.take(3) 
                         |> Seq.toArray
+                    revenue = 0
                     })
 
 

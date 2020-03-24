@@ -15,19 +15,10 @@ open FSharpx
 open Elmish
 open BGS.Data
 open BGS
-
-
+open Aether
+open Aether.Operators
 
 module PersonView  =
-    let updatePersonFirstName (person:Lens<Person>) name =
-        {person.Get with firstName = name} |> person.Set
-
-    let updatePersonSecondName (person:Lens<Person>) name =
-        {person.Get with lastName = name} |> person.Set
-
-    let updateCompanyBusiness (company:Lens<Company>) business =
-        {company.Get with business = business} |> company.Set
-
     let view (isEditable:bool) (person:Lens<Person>) =
         StackPanel.create [
             StackPanel.orientation Orientation.Horizontal
@@ -37,29 +28,41 @@ module PersonView  =
                     TextBox.isEnabled isEditable
                     TextBox.text person.Get.firstName
                     if isEditable then
-                        yield! TextBox.onTextInput ( fun txt ->  updatePersonFirstName person txt)
+                        yield! TextBox.onTextInput (person.Focus Person.firstName').Set
                 ]
                 TextBox.create [
                     TextBox.isEnabled isEditable
                     TextBox.width 200.0
                     TextBox.text person.Get.lastName
                     if isEditable then
-                        yield! TextBox.onTextInput ( fun txt ->  updatePersonSecondName person txt)
+                        yield! TextBox.onTextInput (person.Focus Person.lastName').Set
                 ]
             ]
         ]
 
-
 module CompanyView =
-    let updateCompanyName (company:Lens<Company>) name =
-        if name <> company.Get.name then
-            {company.Get with name = name} |> company.Set
 
-    let updateCompanyBusiness (company:Lens<Company>) business =
-        if business <> company.Get.business then
-            {company.Get with business = business} |> company.Set
+    module Morphs = 
+        // Usa FParsec to parse a string to an int. Overkill but
+        // a nice demonstration. You could make it more complex
+        open FParsec
+        let int = (
+            ( fun (v:int) -> sprintf "%d" v), 
+              fun (txt:string) -> 
+                match run pint32 txt with 
+                | Success(result,_,_)->Some result
+                | Failure _->None
+            )
+
+    module TextBox =
+        let inline bind (lens:Lens<string>) =
+            [
+                TextBox.text lens.Get
+                yield! TextBox.onTextInput lens.Set
+            ]
 
     let view   (editable:bool) (company:Lens<Company>) =
+
         DockPanel.create [
             DockPanel.children [
                 StackPanel.create [
@@ -68,14 +71,17 @@ module CompanyView =
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            TextBox.text company.Get.name
-                            yield! TextBox.onTextInput ( fun txt ->  updateCompanyName company txt )
+                            yield! company.Focus Company.name' |> TextBox.bind
                         ]
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            TextBox.text company.Get.business
-                            yield! TextBox.onTextInput ( fun txt ->  updateCompanyBusiness company txt )
+                            yield! company.Focus Company.business' |> TextBox.bind
+                        ]
+                        TextBox.create [
+                            TextBox.isEnabled editable
+                            TextBox.width 200.0
+                            yield! (company.Focus Company.revenue').Morph Morphs.int |> TextBox.bind
                         ]
                     ]
                 ]
@@ -88,14 +94,8 @@ module CompanyDetailsView =
 
     let view ( company:Lens<Company>)  =
 
-        let persons =
-            let setter persons state = { state with employees = persons }
-            let getter state = state.employees 
-            company.Focus setter getter
-
         let personLenses = 
-            Lens.focusArray (fun (a:Person) (b:Person) -> a.id = b.id) persons
-
+            Lens.focusArray (fun (a:Person) (b:Person) -> a.id = b.id) (company.Focus Company.employees')
 
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
@@ -125,7 +125,9 @@ module CompaniesView =
     type State = {
         companies: Company array
         selectedCompany: int
-    }
+    } with
+        static member companies' = (fun o->o.companies),(fun v o -> {o with companies = v})
+        static member selectedCompany' = (fun o->o.selectedCompany),(fun v o -> {o with selectedCompany = v})
 
     let init companies = { companies = companies; selectedCompany = 0}
 
@@ -140,11 +142,10 @@ module CompaniesView =
         DockPanel.create [
             DockPanel.children [
                 let companyLenses = 
-                    state.Focus (fun v s -> {s with companies = v}) (fun v -> v.companies)
-                    |> Lens.focusArray (fun a b -> a.id = b.id)
+                    state.Focus State.companies' |> Lens.focusArray (fun a b -> a.id = b.id)
 
                 let selectedCompanyIdLens =
-                    state.Focus updateSelectedCompany (fun x -> x.selectedCompany ) 
+                    state.Focus State.selectedCompany'
 
                 TextBlock.create [
                     TextBlock.dock Dock.Bottom
@@ -181,7 +182,7 @@ module CompaniesView =
                         s.companies 
                         |> Seq.find ( fun c -> c.id = s.selectedCompany)
         
-                    state.Focus setter getter
+                    state.Focus(getter,setter)
 
 CompanyDetailsView.view selectedCompanyLens 
             ]
