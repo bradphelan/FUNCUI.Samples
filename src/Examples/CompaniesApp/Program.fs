@@ -34,8 +34,8 @@ type MainWindow() as this =
             // to meet the type signiture of mkProgram
             let update msg state = 
                 match msg with
-                | Message (update, cmd) ->
-                    update state, cmd
+                | Message update ->
+                    update state,Cmd.none
 
             // Start the program
             Elmish.Program.mkProgram (fun () -> initialState,Cmd.none) update view
