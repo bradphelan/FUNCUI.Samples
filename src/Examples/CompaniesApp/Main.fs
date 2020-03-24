@@ -99,6 +99,26 @@ module CompanyView =
                             TextBox.width 200.0
                             yield! company >-> Company.revenue' >??> Parsers.intAsync |> TextBox.bindText
                         ]
+                        StackPanel.create [
+                            StackPanel.orientation Orientation.Vertical
+                            StackPanel.children [
+                                Button.create [
+                                    Button.content "+"
+                                    Button.onClick (fun _ -> (company >-> Company.revenue').Update(fun v -> v+1) )
+                                ]
+                                Button.create [
+                                    Button.content "-"
+                                    Button.onClick (fun _ -> 
+                                        (company >-> Company.revenue')
+                                            .Update(fun v -> 
+                                                async {
+                                                    do! Async.SwitchToThreadPool()
+                                                    do! Async.Sleep 500
+                                                    return v-1 
+                                                }) )
+                                ]
+                            ]
+                        ]
                     ]
                 ]
             ]
