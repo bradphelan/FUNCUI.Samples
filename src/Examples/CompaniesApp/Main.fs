@@ -19,7 +19,7 @@ open BGS
 module PersonView  =
     open Lens.Operators
 
-    let view (isEditable:bool) (person:Lens<Person>) =
+    let view (isEditable:bool) (person:Image<Person>) =
         StackPanel.create [
             StackPanel.orientation Orientation.Horizontal
             StackPanel.children [
@@ -55,14 +55,24 @@ module CompanyView =
                 | Failure _->None
             )
 
+        open FParsec
+        let intAsync = (
+            ( fun (v:int) -> sprintf "%d" v), 
+              fun (txt:string) -> 
+                match run pint32 txt with 
+                | Success(result,_,_)->Some result
+                | Failure _->None
+            )
+
+
     module TextBox =
-        let inline bindText (lens:Lens<string>) =
+        let inline bindText (lens:Image<string>) =
             [
                 TextBox.text lens.Get
                 yield! TextBox.onTextInput lens.Set
             ]
 
-    let view   (editable:bool) (company:Lens<Company>) =
+    let view   (editable:bool) (company:Image<Company>) =
 
         DockPanel.create [
             DockPanel.children [
@@ -95,7 +105,7 @@ module CompanyDetailsView =
     let updatePersons (person:Person) (persons:Person array)  =
         updateItems persons person |> Seq.toArray
 
-    let view ( company:Lens<Company>)  =
+    let view ( company:Image<Company>)  =
 
         let personLenses = 
             Lens.Array.each (company >-> Company.employees')
@@ -116,7 +126,7 @@ module CompanyDetailsView =
                 ]
                 ListBox.create [
                     ListBox.dataItems personLenses
-                    ListBox.itemTemplate (DataTemplateView<Lens<Person>>.create(PersonView.view true))
+                    ListBox.itemTemplate (DataTemplateView<Image<Person>>.create(PersonView.view true))
                 ]
             ]
         ]
@@ -133,7 +143,7 @@ module CompaniesView =
 
     let init companies = { companies = companies; selectedCompany = 0}
 
-    let view (state: Lens<State>)   =
+    let view (state: Image<State>)   =
 
         let findSelectedIndex (state:State) =
             state.companies |> Seq.findIndex ( fun c -> c.id = state.selectedCompany)
