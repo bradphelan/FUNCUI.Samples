@@ -17,7 +17,6 @@ open BGS.Data
 open BGS
 
 module PersonView  =
-    open Lens.Operators
 
     let view (isEditable:bool) (person:Image<Person>) =
         StackPanel.create [
@@ -41,7 +40,6 @@ module PersonView  =
         ]
 
 module CompanyView =
-    open Lens.Operators
 
     module Parsers = 
         // Usa FParsec to parse a string to an int. Overkill but
@@ -97,7 +95,7 @@ module CompanyView =
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            yield! company >-> Company.revenue' >??> Parsers.intAsync |> TextBox.bindText
+                            yield! company >-> Company.revenue' >-> Parsers.intAsync |> TextBox.bindText
                         ]
                         StackPanel.create [
                             StackPanel.orientation Orientation.Vertical
@@ -126,7 +124,6 @@ module CompanyView =
         ]
        
 module CompanyDetailsView =
-    open Lens.Operators
 
     let updatePersons (person:Person) (persons:Person array)  =
         updateItems persons person |> Seq.toArray
@@ -158,7 +155,6 @@ module CompanyDetailsView =
         ]
 
 module CompaniesView =
-    open Lens.Operators
 
     type State = {
         companies: Company array
