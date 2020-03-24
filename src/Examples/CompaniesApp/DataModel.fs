@@ -30,7 +30,7 @@ module Data =
         name: string
         business: string
         employees: Person array
-        revenue: int
+        revenue: int32
     } with
         static member id' = (fun o->o.id),(fun v (o:Company) -> {o with id = v})
         static member name' = (fun o->o.name),(fun v o -> {o with name = v})

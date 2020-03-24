@@ -36,6 +36,8 @@ type MainWindow() as this =
                 match msg with
                 | Message update ->
                     update state,Cmd.none
+                | Action action -> 
+                    state, Cmd.none
 
             // Start the program
             Elmish.Program.mkProgram (fun () -> initialState,Cmd.none) update view

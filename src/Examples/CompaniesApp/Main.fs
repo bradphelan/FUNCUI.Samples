@@ -57,11 +57,16 @@ module CompanyView =
 
         open FParsec
         let intAsync = (
-            ( fun (v:int) -> sprintf "%d" v), 
+            ( fun (v:int32) -> sprintf "%d" v), 
               fun (txt:string) -> 
-                match run pint32 txt with 
-                | Success(result,_,_)->Some result
-                | Failure _->None
+                async {
+                    do! Async.Sleep 1000
+                    match run pint32 txt with 
+                    | Success(result,_,_)->return Some result
+                    | Failure _->return None
+                } 
+                |> Async.StartAsTask
+                |> Async.AwaitTask
             )
 
 
@@ -92,7 +97,7 @@ module CompanyView =
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            yield! company >-> Company.revenue' >?> Parsers.int |> TextBox.bindText
+                            yield! company >-> Company.revenue' >??> Parsers.intAsync |> TextBox.bindText
                         ]
                     ]
                 ]
