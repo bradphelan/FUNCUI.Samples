@@ -102,20 +102,21 @@ module CompanyView =
                         StackPanel.create [
                             StackPanel.orientation Orientation.Vertical
                             StackPanel.children [
+                                let revenue = company >-> Company.revenue'
+                                let update n =
+                                        revenue.Update(fun v -> 
+                                            async {
+                                                do! Async.SwitchToThreadPool()
+                                                do! Async.Sleep 50
+                                                return v+n
+                                            }) 
                                 Button.create [
-                                    Button.content "+"
-                                    Button.onClick (fun _ -> (company >-> Company.revenue').Update(fun v -> v+1) )
+                                    Button.content "+ async"
+                                    Button.onClick (fun _ -> update 1  )
                                 ]
                                 Button.create [
-                                    Button.content "-"
-                                    Button.onClick (fun _ -> 
-                                        (company >-> Company.revenue')
-                                            .Update(fun v -> 
-                                                async {
-                                                    do! Async.SwitchToThreadPool()
-                                                    do! Async.Sleep 500
-                                                    return v-1 
-                                                }) )
+                                    Button.content "- async"
+                                    Button.onClick (fun _ -> update -1  )
                                 ]
                             ]
                         ]
