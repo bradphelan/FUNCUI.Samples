@@ -43,7 +43,7 @@ module PersonView  =
 module CompanyView =
     open Lens.Operators
 
-    module Morphs = 
+    module Parsers = 
         // Usa FParsec to parse a string to an int. Overkill but
         // a nice demonstration. You could make it more complex
         open FParsec
@@ -92,7 +92,7 @@ module CompanyView =
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            yield! company >-> Company.revenue' >?> Morphs.int |> TextBox.bindText
+                            yield! company >-> Company.revenue' >?> Parsers.int |> TextBox.bindText
                         ]
                     ]
                 ]
