@@ -24,7 +24,6 @@ module Data =
             }
         )
 
-
     type Company = {
         id: int
         name: string

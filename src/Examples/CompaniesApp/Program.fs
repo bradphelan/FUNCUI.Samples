@@ -25,22 +25,10 @@ type MainWindow() as this =
             // Initialize the main view state
             let initialState = CompaniesView.init Data.init
 
-            // Wrap the mainview view function and inject the bin file reviewer action
-            let view state dispatch = 
-                let getter = fun() -> state
-                CompaniesView.view (Lens.init getter dispatch) 
-
-            // Process commands at the top level so discard them
-            // to meet the type signiture of mkProgram
-            let update msg state = 
-                match msg with
-                | Message update ->
-                    update state,Cmd.none
-
             // Start the program
-            Elmish.Program.mkProgram (fun () -> initialState,Cmd.none) update view
+            Program.mkLensProgram initialState CompaniesView.view
                 |> Program.withHost this
-               // |> Program.withConsoleTrace
+                // |> Program.withConsoleTrace
                 |> Program.run
             return ()
         }
