@@ -14,7 +14,6 @@ open Avalonia.Layout
 open System.IO
 open FSharpx
 open Elmish
-open BGS.Data
 open BGS
 open Elmish
 open XTargets.Elmish
@@ -32,9 +31,11 @@ module Parsers =
     let int = (
         ( fun (v:int) -> sprintf "%d" v), 
           fun (txt:string) -> 
-            match run pint32 txt with 
-            | Success(result,_,_)->Result.Ok result
-            | Failure _-> Result.Error "failed to parse"
+            let r,v = Int32.TryParse txt
+            if r then
+                Result.Ok v
+            else
+                Result.Error "failed to parse"
         )
 
 module Data =
@@ -43,16 +44,10 @@ module Data =
         value: int 
     } with
         static member value' = (fun o->o.value),(fun v (o:Item) -> {o with value = v})
+
         static member init = { value = 0 }
 
 module TextBox =
-
-    open Avalonia.Controls
-    open FSharpx
-
-    (* TextBox.onTextChanged is super flaky and causes the dispatch loop to hang because 
-       events are fired that are not from user input
-    *)
     let onTextInput handler =
         [
             TextBox.onKeyDown ( fun args ->  handler (args.Source :?> TextBox).Text  )
@@ -69,18 +64,21 @@ module ItemView =
     open Data
     type State =
         {
-            value : string
+            valueErrors: string array
         }
         with
-        static member init = { value = "" }
+        static member valueErrors' = (fun o->o.valueErrors),(fun v o -> {o with valueErrors = v})
+        static member init = { valueErrors = [||] }
 
     let view (stateImage:Image<State*Item>)  = 
         let state = stateImage |> Lens.Tuple.fst
         let item = stateImage |> Lens.Tuple.snd
 
-        let errHandler = Image.ofNone
+        let errHandler = state >-> State.valueErrors' >-> Lens.Array.toOption
+
         TextBox.create [
             TextBox.text (string item.Get.value)
             yield! (item >-> Item.value').Parse errHandler Parsers.int |> TextBox.bindText
+            TextBox.errors (state.Get.valueErrors |> Seq.cast<obj> |> Seq.toArray)
         ]
 

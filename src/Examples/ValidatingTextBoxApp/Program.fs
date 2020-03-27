@@ -56,8 +56,11 @@ module Program =
     [<EntryPoint>]
     let main(args: string[]) =
 
-        AppBuilder
-            .Configure<App>()
-            .UsePlatformDetect()
-            .UseSkia()
-            .StartWithClassicDesktopLifetime(args)
+        let result = 
+            AppBuilder
+                .Configure<App>()
+                .UsePlatformDetect()
+                .UseSkia()
+                .StartWithClassicDesktopLifetime(args)
+
+        result 
