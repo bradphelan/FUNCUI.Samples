@@ -87,26 +87,33 @@ let ``Tuple of lenses to a lens of tuples``() =
 
 [<Fact>]
 let ``Parsing should work``() =
-    let company = BGS.Data.companyFaker.Generate ""
-    let image = simpleImage(company)
+    let company:Company = BGS.Data.companyFaker.Generate ""
 
-    let err = simpleImage("")
+    // Set up an image for the company
+    let image:Image<Company> = simpleImage(company)
+    // Create an image for for the company revenue by applying a lens
+    let revenue:Image<int> = (image >-> Company.revenue')
 
-    let errHandler = err.ToOption ""
+    // Setup up an image for the revenue parsing error. If none is passed back then
+    // the error message will be "ok" 
+    let revenueError:Image<string option> = simpleImage("").ToOption "ok"
 
-    let revenueAsString = (image >-> Company.revenue').Parse errHandler  Parsers.int
-    let revenue = image >-> Company.revenue' 
+    // Convert the revenue image to a string image and attach an error handling for parsing errors
+    let revenueAsString:Image<string> = revenue.Parse revenueError Parsers.int
+
     revenue.Set(25)
-    revenue.Get |> should equal 25
+    revenue.Get         |> should equal 25
     revenueAsString.Get |> should equal "25"
-    revenueAsString.Set "257"
-    revenue.Get |> should equal 257
-    revenueAsString.Get |> should equal "257"
 
-    err.Get |> should equal ""
+    revenueAsString.Set "257"
+    revenue.Get         |> should equal 257
+    revenueError.Get    |> should equal ""
+    revenueAsString.Get |> should equal "257"
+    revenueError.Get    |> should equal ""
+
     revenueAsString.Set "foo"
-    err.Get |> should equal "unable to parse"
+    revenueError.Get    |> should equal "unable to parse"
 
     revenueAsString.Set "666"
     revenueAsString.Get |> should equal "666"
-    err.Get |> should equal ""
+    revenueError.Get    |> should equal ""

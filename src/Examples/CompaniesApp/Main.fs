@@ -9,12 +9,21 @@ open Avalonia.Controls
 open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
+open Avalonia.FuncUI.Components.Hosts
 open Avalonia.Layout
 open System.IO
 open FSharpx
 open Elmish
 open BGS.Data
 open BGS
+open Elmish
+open XTargets.Elmish
+open Avalonia
+open Avalonia.Controls.ApplicationLifetimes
+open Avalonia.FuncUI
+open Avalonia.FuncUI.Elmish
+open FSharpx
+open System.IO
 
 module PersonView  =
 
@@ -41,6 +50,10 @@ module PersonView  =
 
 module CompanyView =
 
+    type State = {
+        revenueErrors:string array
+    }
+
     module Parsers = 
         // Usa FParsec to parse a string to an int. Overkill but
         // a nice demonstration. You could make it more complex
@@ -49,8 +62,8 @@ module CompanyView =
             ( fun (v:int) -> sprintf "%d" v), 
               fun (txt:string) -> 
                 match run pint32 txt with 
-                | Success(result,_,_)->Some result
-                | Failure _->None
+                | Success(result,_,_)->Result.Ok result
+                | Failure _-> Result.Error "failed to parse"
             )
 
         open FParsec
@@ -92,11 +105,15 @@ module CompanyView =
                             TextBox.width 200.0
                             yield! company >-> Company.business' |> TextBox.bindText
                         ]
+
+                        let errHandler = Image.ofNone
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            yield! company >-> Company.revenue' >-> Parsers.intAsync |> TextBox.bindText
+                            yield! (company >-> Company.revenue').Parse errHandler Parsers.int |> TextBox.bindText
+                            // TextBox.errors (if err.Get = "" then [] else ["error"])
                         ]
+
                         StackPanel.create [
                             StackPanel.orientation Orientation.Vertical
                             StackPanel.children [

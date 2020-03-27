@@ -39,3 +39,4 @@ msbuild.wrn
 .hscache
 
 .fake
+.ionide
