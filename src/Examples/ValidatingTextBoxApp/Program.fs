@@ -15,8 +15,8 @@ type MainWindow() as this =
     inherit HostWindow()
     do
         base.Title <- "Validating text box"
-        base.Width <- 900.0
-        base.Height <- 400.0
+        base.Width <- 400.0
+        base.Height <- 80.0
         
         //this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
         //this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
