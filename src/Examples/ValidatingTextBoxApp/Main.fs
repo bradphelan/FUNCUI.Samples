@@ -66,13 +66,13 @@ module ItemView =
     // This is the view state
     type State =
         {
-            value0Errors: string array
-            value1Errors: string array
+            value0ParseError: string option
+            value1ParseError: string option
         }
         with
-        static member value0Errors' = (fun o->o.value0Errors),(fun v o -> {o with value0Errors = v})
-        static member value1Errors' = (fun o->o.value1Errors),(fun v o -> {o with value1Errors = v})
-        static member init = { value0Errors = [||]; value1Errors=[||] }
+        static member value0ParseError' = (fun o->o.value0ParseError),(fun v o -> {o with value0ParseError = v})
+        static member value1ParseError' = (fun o->o.value1ParseError),(fun v o -> {o with value1ParseError = v})
+        static member init = { value0ParseError = None; value1ParseError=None }
 
     // The view receives an Image to it's view state tupeled with the model state
     let view (stateImage:Image<State*Item>)  = 
@@ -82,8 +82,8 @@ module ItemView =
         let item = stateImage |> Lens.Tuple.snd
 
         // Get images for each field
-        let value0Errors = state >-> State.value0Errors' >-> Lens.Array.toOption
-        let value1Errors = state >-> State.value1Errors' >-> Lens.Array.toOption
+        let valueParse0Errors = state >-> State.value0ParseError' 
+        let value1ParseErrors = state >-> State.value1ParseError' 
 
         // Get images for each model field
         let value0 = (item >-> Item.value0')
@@ -94,6 +94,14 @@ module ItemView =
                 [|"the value must be less than 10"|]
             else
                 [||]
+
+        let inline bindValidation (data:Image<'a>) parser (errHandler:Image<string option>) (validate:'a->string array) =
+            [
+                TextBox.text (string data.Get)
+                yield! data.Parse errHandler parser |> TextBox.bindText
+                TextBox.errors ([errHandler.Get |> Option.toArray; validate data.Get] |> Seq.concat |> Seq.cast<obj> |> Seq.toArray)
+
+            ]
 
 
         StackPanel.create [
@@ -107,9 +115,7 @@ module ItemView =
                             TextBlock.width 150.0
                         ]
                         TextBox.create [
-                            TextBox.text (string item.Get.value0)
-                            yield! value0.Parse value0Errors Parsers.int |> TextBox.bindText
-                            TextBox.errors ([|state.Get.value0Errors; (validate value0.Get)|] |> Seq.concat |> Seq.cast<obj> |> Seq.toArray)
+                            yield! bindValidation value0 Parsers.int valueParse0Errors validate
                             TextBox.width 150.0
                         ]
                     ]
@@ -122,9 +128,7 @@ module ItemView =
                             TextBlock.width 150.0
                         ]
                         TextBox.create [
-                            TextBox.text (string item.Get.value1)
-                            yield! value1.Parse value1Errors Parsers.int |> TextBox.bindText
-                            TextBox.errors ( [|state.Get.value1Errors; (validate value1.Get)|] |> Seq.concat |> Seq.cast<obj> |> Seq.toArray)
+                            yield! bindValidation value1 Parsers.int value1ParseErrors validate
                             TextBox.width 150.0
                         ]
                     ]
