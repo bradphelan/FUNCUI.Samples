@@ -35,7 +35,7 @@ module Parsers =
             if r then
                 Result.Ok v
             else
-                Result.Error "failed to parse"
+                Result.Error (sprintf "failed to parse %s as Int32" txt)
         )
 
 module Data =

@@ -14,7 +14,7 @@ open System.IO
 type MainWindow() as this =
     inherit HostWindow()
     do
-        base.Title <- "Brad Gone Surfing"
+        base.Title <- "Validating text box"
         base.Width <- 900.0
         base.Height <- 400.0
         
