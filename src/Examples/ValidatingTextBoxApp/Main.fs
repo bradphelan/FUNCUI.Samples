@@ -18,7 +18,6 @@ open BGS
 open Elmish
 open XTargets.Elmish
 open Avalonia
-open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.FuncUI
 open Avalonia.FuncUI.Elmish
 open FSharpx
@@ -64,6 +63,7 @@ module TextBox =
 
 module ItemView =
     open Data
+    // This is the view state
     type State =
         {
             value0Errors: string array
@@ -74,15 +74,27 @@ module ItemView =
         static member value1Errors' = (fun o->o.value1Errors),(fun v o -> {o with value1Errors = v})
         static member init = { value0Errors = [||]; value1Errors=[||] }
 
+    // The view receives an Image to it's view state tupeled with the model state
     let view (stateImage:Image<State*Item>)  = 
+
+        // Split the data into seperate images
         let state = stateImage |> Lens.Tuple.fst
         let item = stateImage |> Lens.Tuple.snd
 
+        // Get images for each field
         let value0Errors = state >-> State.value0Errors' >-> Lens.Array.toOption
         let value1Errors = state >-> State.value1Errors' >-> Lens.Array.toOption
 
+        // Get images for each model field
         let value0 = (item >-> Item.value0')
         let value1 = (item >-> Item.value1')
+
+        let validate v = 
+            if v > 10 then
+                [|"the value must be less than 10"|]
+            else
+                [||]
+
 
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
@@ -97,7 +109,7 @@ module ItemView =
                         TextBox.create [
                             TextBox.text (string item.Get.value0)
                             yield! value0.Parse value0Errors Parsers.int |> TextBox.bindText
-                            TextBox.errors (state.Get.value0Errors |> Seq.cast<obj> |> Seq.toArray)
+                            TextBox.errors ([|state.Get.value0Errors; (validate value0.Get)|] |> Seq.concat |> Seq.cast<obj> |> Seq.toArray)
                             TextBox.width 150.0
                         ]
                     ]
@@ -112,7 +124,7 @@ module ItemView =
                         TextBox.create [
                             TextBox.text (string item.Get.value1)
                             yield! value1.Parse value1Errors Parsers.int |> TextBox.bindText
-                            TextBox.errors (state.Get.value1Errors |> Seq.cast<obj> |> Seq.toArray)
+                            TextBox.errors ( [|state.Get.value1Errors; (validate value1.Get)|] |> Seq.concat |> Seq.cast<obj> |> Seq.toArray)
                             TextBox.width 150.0
                         ]
                     ]
