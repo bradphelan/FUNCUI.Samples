@@ -2,12 +2,13 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
-  
   <ItemGroup>
-    <Compile Include="Library.fs" />
+    <Compile Include="TypeAbbr.fs" />
+    <Compile Include="Redux.fs" />
+    <Compile Include="Lens.fs" />
     <Compile Include="ValueConverters.fs" />
+    <Compile Include="Elmish.fs" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Elmish" Version="3.0.0" />
   </ItemGroup>

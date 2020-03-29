@@ -11,7 +11,7 @@ module TextBox =
             TextBox.onKeyUp ( fun args ->  handler (args.Source :?> TextBox).Text  )
         ]
 
-    let inline bindText (lens:Image<string>) =
+    let inline bindText (lens:Redux<string>) =
         [
             TextBox.text lens.Get
             yield! onTextInput lens.Set

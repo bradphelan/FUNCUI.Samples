@@ -13,7 +13,7 @@ open BGS
 
 module PersonView  =
 
-    let view (isEditable:bool) (person:Image<Person>) =
+    let view (isEditable:bool) (person:Redux<Person>) =
         StackPanel.create [
             StackPanel.orientation Orientation.Horizontal
             StackPanel.children [
@@ -68,13 +68,13 @@ module CompanyView =
 
 
     module TextBox =
-        let inline bindText (lens:Image<string>) =
+        let inline bindText (lens:Redux<string>) =
             [
                 TextBox.text lens.Get
                 yield! TextBox.onTextInput lens.Set
             ]
 
-    let view   (editable:bool) (company:Image<Company>) =
+    let view   (editable:bool) (company:Redux<Company>) =
 
         DockPanel.create [
             DockPanel.children [
@@ -92,7 +92,7 @@ module CompanyView =
                             yield! company >-> Company.business' |> TextBox.bindText
                         ]
 
-                        let errHandler = Image.ofNone
+                        let errHandler = Redux.ofNone
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
@@ -131,7 +131,7 @@ module CompanyDetailsView =
     let updatePersons (person:Person) (persons:Person array)  =
         updateItems persons person |> Seq.toArray
 
-    let view ( company:Image<Company>)  =
+    let view ( company:Redux<Company>)  =
 
         let personLenses = 
             Lens.Array.each (company >-> Company.employees')
@@ -152,7 +152,7 @@ module CompanyDetailsView =
                 ]
                 ListBox.create [
                     ListBox.dataItems personLenses
-                    ListBox.itemTemplate (DataTemplateView<Image<Person>>.create(PersonView.view true))
+                    ListBox.itemTemplate (DataTemplateView<Redux<Person>>.create(PersonView.view true))
                 ]
             ]
         ]
@@ -168,7 +168,7 @@ module CompaniesView =
 
     let init companies = { companies = companies; selectedCompany = 0}
 
-    let view (state: Image<State>)   =
+    let view (state: Redux<State>)   =
 
         let findSelectedIndex (state:State) =
             state.companies |> Seq.findIndex ( fun c -> c.id = state.selectedCompany)

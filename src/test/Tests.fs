@@ -11,7 +11,7 @@ open BGS.Data
 let ``basic lensing`` () =
 
     let company = BGS.Data.companyFaker.Generate ""
-    let image = Image.ofConst(company)
+    let image = Redux.ofConst(company)
 
     let companyName = image >-> Company.name'
 
@@ -23,7 +23,7 @@ let ``basic lensing`` () =
 [<Fact>]
 let ``lensing through arrays works`` () =
     let company = BGS.Data.companyFaker.Generate ""
-    let image = Image.ofConst(company)
+    let image = Redux.ofConst(company)
     let employee2 = image >-> Company.employees' >-> (Lens.Array.at 2) >-> Person.firstName'
 
     image.Get.employees.[2].firstName |> should not' (equal "freddy krueger")
@@ -36,8 +36,8 @@ let ``lensing through arrays works`` () =
 let ``Tuple of lenses to a lens of tuples``() =
     let company = BGS.Data.companyFaker.Generate ""
 
-    let ci = Image.ofConst(company)
-    let error = Image.ofConst(false)
+    let ci = Redux.ofConst(company)
+    let error = Redux.ofConst(false)
 
     let ie = Lens.Tuple.mk2 (ci>->Company.revenue') error
 
@@ -56,16 +56,16 @@ let ``Parsing should work``() =
     let company:Company = BGS.Data.companyFaker.Generate ""
 
     // Set up an image for the company
-    let image:Image<Company> = Image.ofConst(company)
+    let image:Redux<Company> = Redux.ofConst(company)
     // Create an image for for the company revenue by applying a lens
-    let revenue:Image<int> = (image >-> Company.revenue')
+    let revenue:Redux<int> = (image >-> Company.revenue')
 
     // Setup up an image for the revenue parsing error. If none is passed back then
     // the error message will be "ok" 
-    let revenueError:Image<string option> = Image.ofConst("").ToOption "ok"
+    let revenueError:Redux<string option> = Redux.ofConst("").ToOption "ok"
 
     // Convert the revenue image to a string image and attach an error handling for parsing errors
-    let revenueAsString:Image<string> = revenue.Convert revenueError.Set ValueConverters.StringToInt32
+    let revenueAsString:Redux<string> = revenue.Convert revenueError.Set ValueConverters.StringToInt32
 
     revenue.Set(25)
     revenue.Get         |> should equal 25

@@ -35,7 +35,7 @@ module ItemView =
         static member init = { value0ParseError = None; value1ParseError=None }
 
     // The view receives an Image to it's view state tupeled with the model state
-    let view (stateImage:Image<State*Item>)  = 
+    let view (stateImage:Redux<State*Item>)  = 
 
         // Split the data into seperate images
         let state = stateImage |> Lens.Tuple.fst
@@ -55,7 +55,7 @@ module ItemView =
             else
                 [||]
 
-        let inline formField label (value:Image<int>) (errHandler:Image<string option>) = 
+        let inline formField label (value:Redux<int>) (errHandler:Redux<string option>) = 
             StackPanel.create [
                 StackPanel.orientation Orientation.Horizontal
                 StackPanel.children [
