@@ -6,7 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="DataModel.fs"/>
+        <ProjectReference Include="../../XTargets.Elmish.Lens/XTargets.Elmish.Lens.fsproj"/>
+        <ProjectReference Include="../../XTargets.FuncUI/XTargets.FuncUI.fsproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <Compile Include="Main.fs" />
         <Compile Include="Program.fs" />
         <!-- <AvaloniaResource Include="**\*.xaml" /> -->
@@ -27,9 +31,6 @@
         <EmbeddedResource Remove=".template.config\**" />
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="../../XTargets.Elmish.Lens/XTargets.Elmish.Lens.fsproj"/>
-    </ItemGroup>
 
     
 </Project>

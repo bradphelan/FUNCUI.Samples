@@ -3,25 +3,11 @@ namespace BGS
 
 open Avalonia.FuncUI.DSL
 open XTargets.Elmish
-
 open System
 open Avalonia.Controls
-open Avalonia.FuncUI.Components
-open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.Types
-open Avalonia.FuncUI.Components.Hosts
 open Avalonia.Layout
-open System.IO
 open FSharpx
-open Elmish
-open BGS
-open Elmish
-open XTargets.Elmish
 open Avalonia
-open Avalonia.FuncUI
-open Avalonia.FuncUI.Elmish
-open FSharpx
-open System.IO
 
 module Data =
 
@@ -34,18 +20,6 @@ module Data =
 
         static member init = { value0 = 0; value1 = 1 }
 
-module TextBox =
-    let onTextInput handler =
-        [
-            TextBox.onKeyDown ( fun args ->  handler (args.Source :?> TextBox).Text  )
-            TextBox.onKeyUp ( fun args ->  handler (args.Source :?> TextBox).Text  )
-        ]
-
-    let inline bindText (lens:Image<string>) =
-        [
-            TextBox.text lens.Get
-            yield! onTextInput lens.Set
-        ]
 
 module ItemView =
     open Data
@@ -68,12 +42,15 @@ module ItemView =
         let item = stateImage |> Lens.Tuple.snd
 
         // Get images for each field
-        let valueParse0Errors = state >-> State.value0ParseError' 
+        let value0ParseErrors = state >-> State.value0ParseError' 
         let value1ParseErrors = state >-> State.value1ParseError' 
 
         // Get images for each model field
         let value0 = (item >-> Item.value0')
         let value1 = (item >-> Item.value1')
+
+        let value0' = Lens.Tuple.mk2 value0 value0ParseErrors
+        let value1' = Lens.Tuple.mk2 value1 value1ParseErrors
 
         let validate v = 
             if v > 10 then
@@ -81,46 +58,38 @@ module ItemView =
             else
                 [||]
 
-
-        let inline bindValidation (data:Image<'a>) parser (errHandler:Image<string option>) (validate:'a->string array) =
-            [
-                TextBox.text (string data.Get)
-                yield! data.Parse errHandler parser |> TextBox.bindText
-                TextBox.errors ([errHandler.Get |> Option.toArray; validate data.Get] |> Seq.concat |> Seq.cast<obj> |> Seq.toArray)
-
+        let inline formField label (value:Image<int>) (errHandler:Image<string option>) = 
+            StackPanel.create [
+                StackPanel.orientation Orientation.Horizontal
+                StackPanel.children [
+                    TextBlock.create [
+                        TextBlock.text label
+                        TextBlock.width 150.0
+                    ]
+                    TextBox.create [
+                        TextBox.text (string value.Get)
+                        yield! 
+                            value.Parse errHandler.Set ValueConverters.StringToInt32 
+                            |> TextBox.bindText
+                        let validationErrors = validate value.Get 
+                        let parseErrors = 
+                            errHandler.Get 
+                            |> Option.toArray
+                        let combinedErrors = 
+                            [parseErrors; validationErrors] 
+                            |> Seq.concat 
+                            |> Seq.cast<obj> 
+                        TextBox.errors combinedErrors
+                        TextBox.width 150.0
+                    ]
+                ]
             ]
-
 
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                StackPanel.create [
-                    StackPanel.orientation Orientation.Horizontal
-                    StackPanel.children [
-                        TextBlock.create [
-                            TextBlock.text "Value0"
-                            TextBlock.width 150.0
-                        ]
-                        TextBox.create [
-                            yield! bindValidation value0 ValueConverters.StringToInt32 valueParse0Errors validate
-                            TextBox.width 150.0
-                        ]
-                    ]
-                ]
-                StackPanel.create [
-                    StackPanel.orientation Orientation.Horizontal
-                    StackPanel.children [
-                        TextBlock.create [
-                            TextBlock.text "Value1"
-                            TextBlock.width 150.0
-                        ]
-                        TextBox.create [
-                            yield! bindValidation value1 ValueConverters.StringToInt32 value1ParseErrors validate
-                            TextBox.width 150.0
-                        ]
-                    ]
-                ]
-
+                formField "Value 0" value0 value0ParseErrors
+                formField "Value 1" value1 value0ParseErrors
             ]
         ]
 

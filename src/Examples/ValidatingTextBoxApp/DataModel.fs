@@ -1,6 +1,0 @@
-namespace BGS
-open Bogus
-
-
-
-

@@ -99,7 +99,7 @@ let ``Parsing should work``() =
     let revenueError:Image<string option> = simpleImage("").ToOption "ok"
 
     // Convert the revenue image to a string image and attach an error handling for parsing errors
-    let revenueAsString:Image<string> = revenue.Parse revenueError Parsers.int
+    let revenueAsString:Image<string> = revenue.Parse revenueError.Set Parsers.int
 
     revenue.Set(25)
     revenue.Get         |> should equal 25
