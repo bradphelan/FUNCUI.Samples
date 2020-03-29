@@ -35,11 +35,11 @@ module ItemView =
         static member init = { value0ParseError = None; value1ParseError=None }
 
     // The view receives an Image to it's view state tupeled with the model state
-    let view (stateImage:Redux<State*Item>)  = 
+    let view (stateItemTuple:Redux<State*Item>)  = 
 
         // Split the data into seperate images
-        let state = stateImage |> Lens.Tuple.fst
-        let item = stateImage |> Lens.Tuple.snd
+        let state = stateItemTuple |> Lens.Tuple.fst
+        let item = stateItemTuple |> Lens.Tuple.snd
 
         // Get images for each field
         let value0ParseErrors = state >-> State.value0ParseError' 
@@ -65,9 +65,8 @@ module ItemView =
                     ]
                     TextBox.create [
                         TextBox.text (string value.Get)
-                        yield! 
-                            value.Convert errHandler.Set ValueConverters.StringToInt32 
-                            |> TextBox.bindText
+                        let stringValue = value.Convert ValueConverters.StringToInt32 errHandler.Set
+                        yield! stringValue |> TextBox.bindText
                         let validationErrors = validate value.Get 
                         let parseErrors = 
                             errHandler.Get 

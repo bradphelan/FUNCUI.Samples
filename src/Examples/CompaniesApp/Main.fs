@@ -96,7 +96,7 @@ module CompanyView =
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            yield! (company >-> Company.revenue').Convert errHandler.Set Parsers.int |> TextBox.bindText
+                            yield! (company >-> Company.revenue').Convert Parsers.int errHandler.Set|> TextBox.bindText
                             // TextBox.errors (if err.Get = "" then [] else ["error"])
                         ]
 

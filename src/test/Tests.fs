@@ -65,7 +65,7 @@ let ``Parsing should work``() =
     let revenueError:Redux<string option> = Redux.ofConst("").ToOption "ok"
 
     // Convert the revenue image to a string image and attach an error handling for parsing errors
-    let revenueAsString:Redux<string> = revenue.Convert revenueError.Set ValueConverters.StringToInt32
+    let revenueAsString:Redux<string> = revenue.Convert ValueConverters.StringToInt32 revenueError.Set
 
     revenue.Set(25)
     revenue.Get         |> should equal 25

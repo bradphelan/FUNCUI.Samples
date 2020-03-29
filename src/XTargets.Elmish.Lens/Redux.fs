@@ -93,7 +93,7 @@ type Redux<'State when 'State : equality>(value:unit->'State, dispatch:Message<'
 
     /// Generate a new lens for a two way transformation of the parent lens.
     /// In the case of error the error lens is updated with the error
-    member x.Convert (error:'Error option -> unit ) ((getter:Transform<'State,'Val>,setter):Epimorphism<'State,'Val,'Error>) : Redux<'Val> =
+    member x.Convert ((getter:Transform<'State,'Val>,setter):Epimorphism<'State,'Val,'Error>) (error:'Error option -> unit ): Redux<'Val> =
         let getter' = getter
         let setter' (v:'Val) (s:'State) =
             match setter v with 
