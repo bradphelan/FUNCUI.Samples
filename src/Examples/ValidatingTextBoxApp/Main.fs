@@ -23,20 +23,6 @@ open Avalonia.FuncUI.Elmish
 open FSharpx
 open System.IO
 
-module Parsers = 
-    // Usa FParsec to parse a string to an int. Overkill but
-    // a nice demonstration. You could make it more complex
-    open FParsec
-    let int = (
-        ( fun (v:int) -> sprintf "%d" v), 
-          fun (txt:string) -> 
-            let r,v = Int32.TryParse txt
-            if r then
-                Result.Ok v
-            else
-                Result.Error (sprintf "failed to parse %s as Int32" txt)
-        )
-
 module Data =
 
     type Item = {
@@ -95,6 +81,7 @@ module ItemView =
             else
                 [||]
 
+
         let inline bindValidation (data:Image<'a>) parser (errHandler:Image<string option>) (validate:'a->string array) =
             [
                 TextBox.text (string data.Get)
@@ -115,7 +102,7 @@ module ItemView =
                             TextBlock.width 150.0
                         ]
                         TextBox.create [
-                            yield! bindValidation value0 Parsers.int valueParse0Errors validate
+                            yield! bindValidation value0 ValueConverters.StringToInt32 valueParse0Errors validate
                             TextBox.width 150.0
                         ]
                     ]
@@ -128,7 +115,7 @@ module ItemView =
                             TextBlock.width 150.0
                         ]
                         TextBox.create [
-                            yield! bindValidation value1 Parsers.int value1ParseErrors validate
+                            yield! bindValidation value1 ValueConverters.StringToInt32 value1ParseErrors validate
                             TextBox.width 150.0
                         ]
                     ]
