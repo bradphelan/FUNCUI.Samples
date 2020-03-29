@@ -4,26 +4,12 @@ namespace BGS
 open Avalonia.FuncUI.DSL
 open XTargets.Elmish
 
-open System
 open Avalonia.Controls
 open Avalonia.FuncUI.Components
-open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.Types
-open Avalonia.FuncUI.Components.Hosts
 open Avalonia.Layout
-open System.IO
 open FSharpx
-open Elmish
 open BGS.Data
 open BGS
-open Elmish
-open XTargets.Elmish
-open Avalonia
-open Avalonia.Controls.ApplicationLifetimes
-open Avalonia.FuncUI
-open Avalonia.FuncUI.Elmish
-open FSharpx
-open System.IO
 
 module PersonView  =
 
