@@ -7,45 +7,11 @@ open FsUnit
 open XTargets.Elmish
 open BGS.Data
 
-// Create a simple image of the data
-// that can be updated with lenses
-let simpleImage(data')=
-    let mutable data = data'
-    let dispatch update =
-        data <- update data
-    let getter = fun()->data
-    Image(getter, dispatch)
-
-module Parsers = 
-    // Usa FParsec to parse a string to an int. Overkill but
-    // a nice demonstration. You could make it more complex
-    open FParsec
-    let int = (
-        ( fun (v:int) -> sprintf "%d" v), 
-          fun (txt:string) -> 
-            match run pint32 txt with 
-            | Success(result,_,_)->Result.Ok result
-            | Failure _->Result.Error "unable to parse"
-        )
-
-    let intAsync = (
-        ( fun (v:int32) -> sprintf "%d" v), 
-          fun (txt:string) -> 
-            async {
-                do! Async.Sleep 1000
-                match run pint32 txt with 
-                | Success(result,_,_)->return Result.Ok result
-                | Failure _->return Result.Error "unable to parse"
-            } 
-            |> Async.StartAsTask
-            |> Async.AwaitTask
-        )
-
 [<Fact>]
 let ``basic lensing`` () =
 
     let company = BGS.Data.companyFaker.Generate ""
-    let image = simpleImage(company)
+    let image = Image.ofConst(company)
 
     let companyName = image >-> Company.name'
 
@@ -57,7 +23,7 @@ let ``basic lensing`` () =
 [<Fact>]
 let ``lensing through arrays works`` () =
     let company = BGS.Data.companyFaker.Generate ""
-    let image = simpleImage(company)
+    let image = Image.ofConst(company)
     let employee2 = image >-> Company.employees' >-> (Lens.Array.at 2) >-> Person.firstName'
 
     image.Get.employees.[2].firstName |> should not' (equal "freddy krueger")
@@ -70,8 +36,8 @@ let ``lensing through arrays works`` () =
 let ``Tuple of lenses to a lens of tuples``() =
     let company = BGS.Data.companyFaker.Generate ""
 
-    let ci = simpleImage(company)
-    let error = simpleImage(false)
+    let ci = Image.ofConst(company)
+    let error = Image.ofConst(false)
 
     let ie = Lens.Tuple.mk2 (ci>->Company.revenue') error
 
@@ -90,16 +56,16 @@ let ``Parsing should work``() =
     let company:Company = BGS.Data.companyFaker.Generate ""
 
     // Set up an image for the company
-    let image:Image<Company> = simpleImage(company)
+    let image:Image<Company> = Image.ofConst(company)
     // Create an image for for the company revenue by applying a lens
     let revenue:Image<int> = (image >-> Company.revenue')
 
     // Setup up an image for the revenue parsing error. If none is passed back then
     // the error message will be "ok" 
-    let revenueError:Image<string option> = simpleImage("").ToOption "ok"
+    let revenueError:Image<string option> = Image.ofConst("").ToOption "ok"
 
     // Convert the revenue image to a string image and attach an error handling for parsing errors
-    let revenueAsString:Image<string> = revenue.Parse revenueError.Set Parsers.int
+    let revenueAsString:Image<string> = revenue.Convert revenueError.Set ValueConverters.StringToInt32
 
     revenue.Set(25)
     revenue.Get         |> should equal 25

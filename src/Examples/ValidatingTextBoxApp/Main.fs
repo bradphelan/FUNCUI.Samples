@@ -49,9 +49,6 @@ module ItemView =
         let value0 = (item >-> Item.value0')
         let value1 = (item >-> Item.value1')
 
-        let value0' = Lens.Tuple.mk2 value0 value0ParseErrors
-        let value1' = Lens.Tuple.mk2 value1 value1ParseErrors
-
         let validate v = 
             if v > 10 then
                 [|"the value must be less than 10"|]
@@ -69,7 +66,7 @@ module ItemView =
                     TextBox.create [
                         TextBox.text (string value.Get)
                         yield! 
-                            value.Parse errHandler.Set ValueConverters.StringToInt32 
+                            value.Convert errHandler.Set ValueConverters.StringToInt32 
                             |> TextBox.bindText
                         let validationErrors = validate value.Get 
                         let parseErrors = 
