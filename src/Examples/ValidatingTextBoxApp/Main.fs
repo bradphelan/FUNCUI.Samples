@@ -116,6 +116,7 @@ module ItemView =
                         ]
                         TextBox.create [
                             yield! bindValidation value0 Parsers.int valueParse0Errors validate
+                            TextBox.width 150.0
                         ]
                     ]
                 ]
