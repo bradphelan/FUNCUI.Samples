@@ -2,8 +2,8 @@ namespace XTargets.Elmish
 
 /// A type that holds a value and a dispatcher
 /// for updating that value. Why is it called an 
-/// 'Image'? When you focus a lens on an object
-/// you get an image. Probably a terrible analogy.
+/// 'Redux'? Because it's a reduced view onto
+/// an value store. 
 type Redux<'State when 'State : equality>(value:unit->'State, dispatch:Message<'State>->unit) =
 
     let value = value
