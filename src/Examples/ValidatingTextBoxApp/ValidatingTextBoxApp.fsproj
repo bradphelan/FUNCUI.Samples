@@ -6,8 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="../../XTargets.Elmish.Lens/XTargets.Elmish.Lens.fsproj"/>
-        <ProjectReference Include="../../XTargets.FuncUI/XTargets.FuncUI.fsproj"/>
+        <ProjectReference Include="../../XTargets.Elmish.Lens/XTargets.Elmish.Lens.fsproj" />
+        <ProjectReference Include="../../XTargets.FuncUI/XTargets.FuncUI.fsproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -17,9 +17,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia.Desktop" Version="0.9.0" />
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.2.0" />
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.2.0" />
+        <PackageReference Include="Avalonia.Desktop" Version="0.9.6" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.3.0" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.3.0" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.2.0" />
         <PackageReference Include="FSharp.Data" Version="3.3.3" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />

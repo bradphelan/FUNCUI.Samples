@@ -52,7 +52,6 @@ module CompanyView =
                 | Failure _-> Result.Error "failed to parse"
             )
 
-        open FParsec
         let intAsync = (
             ( fun (v:int32) -> sprintf "%d" v), 
               fun (txt:string) -> 
@@ -65,14 +64,6 @@ module CompanyView =
                 |> Async.StartAsTask
                 |> Async.AwaitTask
             )
-
-
-    module TextBox =
-        let inline bindText (lens:Redux<string>) =
-            [
-                TextBox.text lens.Get
-                yield! TextBox.onTextInput lens.Set
-            ]
 
     let view   (editable:bool) (company:Redux<Company>) =
 
@@ -96,8 +87,12 @@ module CompanyView =
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            yield! (company >-> Company.revenue').Convert Parsers.int errHandler.Set|> TextBox.bindText
-                            // TextBox.errors (if err.Get = "" then [] else ["error"])
+                            yield! (company >-> Company.revenue').Convert XTargets.Elmish.ValueConverters.StringToInt32 errHandler.Set|> TextBox.bindText
+                            let parseErrors = 
+                                errHandler.Get 
+                                |> Option.toArray
+                                |> Seq.cast<obj>
+                            TextBox.errors parseErrors
                         ]
 
                         StackPanel.create [
