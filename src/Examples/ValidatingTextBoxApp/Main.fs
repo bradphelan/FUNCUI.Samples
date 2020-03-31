@@ -8,6 +8,21 @@ open Avalonia.Controls
 open Avalonia.Layout
 open FSharpx
 open Avalonia
+open System
+open Avalonia.Controls
+open Avalonia.Controls
+open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.Components
+open Avalonia.FuncUI.Components
+open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.Types
+open Avalonia.Layout
+open Avalonia.FuncUI.Components.Hosts
+open Avalonia.Controls.ApplicationLifetimes
+open Avalonia.FuncUI.Elmish
+open Elmish
+open Avalonia.FuncUI.Builder
 
 module Data =
 
@@ -23,27 +38,9 @@ module Data =
 
 module ItemView =
     open Data
-    // This is the view state
-    type State =
-        {
-            value0ParseError: string option
-            value1ParseError: string option
-        }
-        with
-        static member value0ParseError' = (fun o->o.value0ParseError),(fun v o -> {o with value0ParseError = v})
-        static member value1ParseError' = (fun o->o.value1ParseError),(fun v o -> {o with value1ParseError = v})
-        static member init = { value0ParseError = None; value1ParseError=None }
 
     // The view receives an Image to it's view state tupeled with the model state
-    let view (stateItemTuple:Redux<State*Item>)  = 
-
-        // Split the data into seperate images
-        let state = stateItemTuple |> Lens.Tuple.fst
-        let item = stateItemTuple |> Lens.Tuple.snd
-
-        // Get images for each field
-        let value0ParseErrors = state >-> State.value0ParseError' 
-        let value1ParseErrors = state >-> State.value1ParseError' 
+    let view (item:Redux<Item>)  = 
 
         // Get images for each model field
         let value0 = (item >-> Item.value0')
@@ -55,7 +52,7 @@ module ItemView =
             else
                 [||]
 
-        let inline formField label (value:Redux<int>) (errHandler:Redux<string option>) = 
+        let inline formField label (value:Redux<int>)  = 
             StackPanel.create [
                 StackPanel.orientation Orientation.Horizontal
                 StackPanel.children [
@@ -63,20 +60,27 @@ module ItemView =
                         TextBlock.text label
                         TextBlock.width 150.0
                     ]
-                    TextBox.create [
-                        TextBox.text (string value.Get)
-                        let stringValue = value.Convert ValueConverters.StringToInt32 errHandler.Set
-                        yield! stringValue |> TextBox.bindText
-                        let validationErrors = validate value.Get 
-                        let parseErrors = 
-                            errHandler.Get 
-                            |> Option.toArray
-                        let combinedErrors = 
-                            [parseErrors; validationErrors] 
-                            |> Seq.concat 
-                            |> Seq.cast<obj> 
-                        TextBox.errors combinedErrors
-                        TextBox.width 150.0
+
+                    LocalStateView.create<int,string option> [
+                        LocalStateView.state value.Get
+                        LocalStateView.viewFunc ( fun (errHandler:Redux<string option>) -> 
+                            TextBox.create [
+                                TextBox.text (string value.Get)
+                                let stringValue = value.Convert ValueConverters.StringToInt32 errHandler.Set
+                                yield! stringValue |> TextBox.bindText
+                                let validationErrors = validate value.Get 
+                                let parseErrors = 
+                                    errHandler.Get 
+                                    |> Option.toArray
+                                let combinedErrors = 
+                                    [parseErrors; validationErrors] 
+                                    |> Seq.concat 
+                                    |> Seq.cast<obj> 
+                                TextBox.errors combinedErrors
+                                TextBox.width 150.0
+                            ] :> IView
+                            
+                        )
                     ]
                 ]
             ]
@@ -84,8 +88,8 @@ module ItemView =
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                formField "Value 0" value0 value0ParseErrors
-                formField "Value 1" value1 value0ParseErrors
+                formField "Value 0" value0 
+                formField "Value 1" value1 
             ]
         ]
 

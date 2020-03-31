@@ -8,6 +8,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controls.fs" />
+    <Compile Include="LocalStateControl.fs"/>
   </ItemGroup>
 
   <ItemGroup>

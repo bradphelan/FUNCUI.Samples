@@ -24,10 +24,9 @@ type MainWindow() as this =
         Result.result {
             // Initialize the main view state
             let initialState = Data.Item.init
-            let initialViewState = ItemView.State.init
 
             // Start the program
-            Program.mkLensProgram (initialViewState,initialState) ItemView.view 
+            Program.mkLensProgram initialState ItemView.view
                 |> Program.withHost this
                 |> Program.withConsoleTrace
                 |> Program.run

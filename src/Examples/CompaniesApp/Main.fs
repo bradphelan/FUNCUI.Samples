@@ -37,7 +37,13 @@ module PersonView  =
 module CompanyView =
 
     type State = {
-        revenueErrors:string array
+        revenueErrors:obj array
+    }
+    with
+        static member revenueErrors' = (fun o->o.revenueErrors),(fun v o -> {o with revenueErrors = v})
+    
+    let init = { 
+        revenueErrors = [||]
     }
 
     module Parsers = 
@@ -65,7 +71,13 @@ module CompanyView =
                 |> Async.AwaitTask
             )
 
-    let view   (editable:bool) (company:Redux<Company>) =
+    let view   (editable:bool) (company:Redux<Company>) (viewState:Redux<State>) =
+        let errHandler = fun (v:string option) -> 
+            v
+            |> Option.toArray
+            |> Seq.cast<obj>
+            |> Seq.toArray
+            |> (viewState >-> State.revenueErrors').Set 
 
         DockPanel.create [
             DockPanel.children [
@@ -83,16 +95,11 @@ module CompanyView =
                             yield! company >-> Company.business' |> TextBox.bindText
                         ]
 
-                        let errHandler = Redux.ofNone
                         TextBox.create [
                             TextBox.isEnabled editable
                             TextBox.width 200.0
-                            yield! (company >-> Company.revenue').Convert XTargets.Elmish.ValueConverters.StringToInt32 errHandler.Set|> TextBox.bindText
-                            let parseErrors = 
-                                errHandler.Get 
-                                |> Option.toArray
-                                |> Seq.cast<obj>
-                            TextBox.errors parseErrors
+                            yield! (company >-> Company.revenue').Convert XTargets.Elmish.ValueConverters.StringToInt32 errHandler |> TextBox.bindText
+                            TextBox.errors viewState.Get.revenueErrors
                         ]
 
                         StackPanel.create [
@@ -139,7 +146,9 @@ module CompanyDetailsView =
                     TextBlock.fontSize 20.0
                     TextBlock.margin 10.0
                 ]
-                CompanyView.view true company 
+                // TODO
+                let companyViewState = Redux.ofValue CompanyView.init
+                CompanyView.view true company companyViewState 
                 TextBlock.create [ 
                     TextBlock.text "The employees ( you can edit them )" 
                     TextBlock.fontSize 20.0
@@ -184,7 +193,10 @@ module CompaniesView =
                     ListBox.onSelectedIndexChanged ( fun id -> 
                         if id > -1 then state.Get.companies.[id].id |> (state >-> State.selectedCompany').Set 
                     )
-                    ListBox.itemTemplate (DataTemplateView.create(CompanyView.view false  ))
+
+                    // TODO
+                    let companyViewState = Redux.ofValue CompanyView.init
+                    ListBox.itemTemplate (DataTemplateView.create( fun item -> CompanyView.view false item companyViewState  ))
                 ]
 
                 let selectedCompanyLensId = 
