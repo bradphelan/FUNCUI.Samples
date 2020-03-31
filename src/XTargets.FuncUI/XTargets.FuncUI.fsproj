@@ -16,6 +16,7 @@
     <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.3.0" />
     <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.3.0" />
     <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.2.0" />
+    <PackageReference Include="FSharp.Control.Reactive" Version="4.2.0" />
   </ItemGroup>
 
 </Project>

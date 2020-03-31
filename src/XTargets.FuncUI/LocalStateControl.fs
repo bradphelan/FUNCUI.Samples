@@ -4,6 +4,9 @@ open System
 open Avalonia
 open Avalonia.FuncUI.Types
 open Avalonia.FuncUI.Components.Hosts
+open System.Reactive.Disposables
+open FSharp.Control.Reactive
+
 
 [<Sealed>]
 type LocalStateView<'state, 'localState when 'localState : equality>() as this =
@@ -15,18 +18,9 @@ type LocalStateView<'state, 'localState when 'localState : equality>() as this =
     let mutable _viewFunc : voption<( Redux<'localState> -> IView)> = ValueNone
 
     let rec _localStateRedux =
-        let getter() = _localState
+        let getter() = this.LocalState
         let update msg =
-            _localState <- msg _localState
-            let nextView =
-                match this.ViewFunc with
-                | ValueSome func ->
-                    func _localStateRedux
-                    |> Some
-                    
-                | ValueNone -> None
-            (this :> IViewHost).Update nextView
-            
+            this.LocalState <- msg _localState
         Redux(getter, update)
     
     static let stateProperty =
@@ -63,7 +57,7 @@ type LocalStateView<'state, 'localState when 'localState : equality>() as this =
         and set (value) = this.SetAndRaise(LocalStateView<'state, 'localState>.ViewFuncProperty, &_viewFunc, value) |> ignore  
         
     override this.OnAttachedToVisualTree _locaState =
-        let onNext (state: 'state) : unit =
+        let onNext _ =
             let nextView =
                 match this.ViewFunc with
                 | ValueSome func ->
@@ -72,12 +66,20 @@ type LocalStateView<'state, 'localState when 'localState : equality>() as this =
                 | ValueNone -> None
                 
             (this :> IViewHost).Update nextView
+
+        let s0 =
+            this.GetObservable(LocalStateView<'state, 'localState>.StateProperty)
+            |> Observable.map(ignore)
+        let s1 =
+            this.GetObservable(LocalStateView<'state, 'localState>.LocalStateProperty)
+            |> Observable.map(ignore)
+
+        subscription <- 
+            Observable.merge s0 s1 
+            |> Observable.throttle (TimeSpan.FromMilliseconds 30.0) 
+            |> Observable.observeOnContext Threading.SynchronizationContext.Current
+            |> Observable.subscribe onNext
         
-        subscription <-
-            this
-                .GetObservable(LocalStateView<'state, 'localState>.StateProperty)
-                .Subscribe(onNext)
-                
     override this.OnDetachedFromLogicalTree _locaState =
         if not (isNull null) then
             subscription.Dispose()
@@ -92,14 +94,10 @@ type LocalStateView<'state, 'localState when 'localState : equality>() as this =
 
 [<AutoOpen>]
 module LocalStateView =  
-    open Avalonia.FuncUI.Types
-    open Avalonia.FuncUI.Components
     open Avalonia.FuncUI.Builder
-
-    let create<'state, 'localState when 'localState : equality>(attrs: IAttr<LocalStateView<'state, 'localState>> list): IView<LocalStateView<'state, 'localState>> =
-        ViewBuilder.Create<LocalStateView<'state, 'localState>>(attrs)
-    
     type LocalStateView<'state, 'localState when 'localState : equality> with
+        static member create<'state, 'localState when 'localState : equality>(attrs: IAttr<LocalStateView<'state, 'localState>> list): IView<LocalStateView<'state, 'localState>> =
+            ViewBuilder.Create<LocalStateView<'state, 'localState>>(attrs)
             
         static member localState(value: 'localState) : IAttr<LocalStateView<'state, 'localState>> =
             AttrBuilder<LocalStateView<'state, 'localState>>.CreateProperty<'localState>(LocalStateView<'state, 'localState>.LocalStateProperty, value, ValueNone)

@@ -8,21 +8,7 @@ open Avalonia.Controls
 open Avalonia.Layout
 open FSharpx
 open Avalonia
-open System
-open Avalonia.Controls
-open Avalonia.Controls
-open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.Components
-open Avalonia.FuncUI.Components
-open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
-open Avalonia.Layout
-open Avalonia.FuncUI.Components.Hosts
-open Avalonia.Controls.ApplicationLifetimes
-open Avalonia.FuncUI.Elmish
-open Elmish
-open Avalonia.FuncUI.Builder
 
 module Data =
 
@@ -32,7 +18,6 @@ module Data =
     } with
         static member value0' = (fun o->o.value0),(fun v o -> {o with value0 = v})
         static member value1' = (fun o->o.value1),(fun v o -> {o with value1 = v})
-
         static member init = { value0 = 0; value1 = 1 }
 
 
@@ -45,12 +30,6 @@ module ItemView =
         // Get images for each model field
         let value0 = (item >-> Item.value0')
         let value1 = (item >-> Item.value1')
-
-        let validate v = 
-            if v > 10 then
-                [|"the value must be less than 10"|]
-            else
-                [||]
 
         let inline formField label (value:Redux<int>)  = 
             StackPanel.create [
@@ -68,15 +47,11 @@ module ItemView =
                                 TextBox.text (string value.Get)
                                 let stringValue = value.Convert ValueConverters.StringToInt32 errHandler.Set
                                 yield! stringValue |> TextBox.bindText
-                                let validationErrors = validate value.Get 
                                 let parseErrors = 
                                     errHandler.Get 
                                     |> Option.toArray
-                                let combinedErrors = 
-                                    [parseErrors; validationErrors] 
-                                    |> Seq.concat 
                                     |> Seq.cast<obj> 
-                                TextBox.errors combinedErrors
+                                TextBox.errors parseErrors
                                 TextBox.width 150.0
                             ] :> IView
                             
