@@ -3,8 +3,9 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
+  
   <ItemGroup>
-    <ProjectReference Include="../XTargets.Elmish.Lens/XTargets.Elmish.Lens.fsproj" />
+    <ProjectReference Include="../XTargets.Elmish.Lens/XTargets.Elmish.Lens.fsproj"/>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controls.fs" />
@@ -18,5 +19,13 @@
     <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.2.0" />
     <PackageReference Include="FSharp.Control.Reactive" Version="4.2.0" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <PackageId>XTargets.FuncUI</PackageId>
+    <Version>0.0.2</Version>
+    <Authors>Brad Phelan</Authors>
+    <Company>XTargets</Company>
+    <PackageLicense>MIT</PackageLicense>
+  </PropertyGroup>
 
 </Project>
