@@ -22,7 +22,7 @@
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.3.0" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.2.0" />
         <PackageReference Include="FSharp.Data" Version="3.3.3" />
-        <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="FSharpx.Extras" Version="2.3.2" />
         <PackageReference Include="FParsec" Version="1.1.1" />
     </ItemGroup>
